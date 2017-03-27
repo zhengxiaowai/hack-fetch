@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+</head>
+<body>
+    <div>
+        <button id="normal-fetch" >测试fetch</button>
+        <button id="five-fetch">测试5秒fetch</button>
+        <button id="ten-fetch">测试10秒的fetch</button>
+        <button id="fifteen-timeout-fetch">测试15秒 timeout 的 fetch</button>
+    </div>
+    <div>
+        <textarea id='result-display' rows='10' cols="50"></textarea>
+    </div>
+    <script type="text/javascript" charset="utf-8">
+        var textDOM = document.getElementById('result-display');
+
+        function createFetch(url, params={}) {
+            return () => {
+                return fetch(url, params)
+                        .then(res => res.json())
+                        .then(json => textDOM.value += json.message + '\n')
+            }
+        }
+        
+        function hackFetch(url, timeout=10, params={}) {
+            var _abort = new Promise((resolve, reject) => {
+                setTimeout(() => reject('abort promise'), timeout);
+            })            
+
+            var _fetch =  fetch(url, params);
+            
+            return Promise.race([_fetch, _abort])
+        }
+
+        function createHackFetch(url, timeout=10, params={}) {
+            return () => {
+                hackFetch(url, timeout, params)
+                    .then(res => res.json())
+                    .then(json => textDOM.value += json.message + '\n')
+                    .catch(err => alert('fetch 超时'))
+            }
+        }
+    </script>
+    <script type="text/javascript" charset="utf-8">
+        document.getElementById('normal-fetch').onclick = createFetch('/api/no-delay');
+        document.getElementById('five-fetch').onclick = createFetch('/api/five-delay');
+        document.getElementById('ten-fetch').onclick = createFetch('/api/ten-delay');
+        document.getElementById('fifteen-timeout-fetch').onclick = createHackFetch('/api/fifteen-delay', 10000);
+        
+    </script>
+</body>
+</html>
