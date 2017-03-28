@@ -10,6 +10,8 @@
         <button id="five-fetch">测试5秒fetch</button>
         <button id="ten-fetch">测试10秒的fetch</button>
         <button id="fifteen-timeout-fetch">测试15秒 timeout 的 fetch</button>
+        <button id="error-five-fetch">测试5秒返回 500 错误的 fetch</button>
+        <button id="error-handling-five-fetch">测试5秒返回 500 错误㓟错误处理的 fetch</button>
     </div>
     <div>
         <textarea id='result-display' rows='10' cols="50"></textarea>
@@ -22,6 +24,7 @@
                 return fetch(url, params)
                         .then(res => res.json())
                         .then(json => textDOM.value += json.message + '\n')
+                        .catch(err => alert('请求失败'))
             }
         }
         
@@ -37,19 +40,34 @@
 
         function createHackFetch(url, timeout=10, params={}) {
             return () => {
-                hackFetch(url, timeout, params)
+                return hackFetch(url, timeout, params)
                     .then(res => res.json())
                     .then(json => textDOM.value += json.message + '\n')
                     .catch(err => alert('fetch 超时'))
             }
         }
+        
+        function xfetch(url, params) {
+            return fetch(url, params)
+                .then(res => res.json().then(json => res.ok ? json : Promise.reject(json)))
+                .then(json => textDOM.value += json.message + '\n')
+                .catch(err => alert(err.message))
+        }
+    
+        function createXfetch(url, params={}) {
+            return () => xfetch(url, params)
+        }
     </script>
     <script type="text/javascript" charset="utf-8">
         document.getElementById('normal-fetch').onclick = createFetch('/api/no-delay');
-        document.getElementById('five-fetch').onclick = createFetch('/api/five-delay');
+        document.getElementById('five-fetch').onclick = createFetch('/api/five-delay');   
         document.getElementById('ten-fetch').onclick = createFetch('/api/ten-delay');
+
         document.getElementById('fifteen-timeout-fetch').onclick = createHackFetch('/api/fifteen-delay', 10000);
         
+        document.getElementById('error-five-fetch').onclick = createFetch('/api/error-five-delay');
+
+        document.getElementById('error-handling-five-fetch').onclick = createXfetch('/api/error-five-delay');
     </script>
 </body>
 </html>

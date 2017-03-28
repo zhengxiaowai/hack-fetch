@@ -45,6 +45,17 @@ app.get('/api/fifteen-delay', function(req, res) {
     }, 15000)
 });
 
+
+app.get('/api/error-five-delay', function(req, res) {
+    res.type('json');
+    res.status(500)
+    setTimeout(() => {
+        res.send(JSON.stringify({
+            message: 'there is a error response'
+        }));
+    }, 5000)
+});
+
 app.listen(3000, function() {
     console.log('Example app listening on port 3000!');
 });
